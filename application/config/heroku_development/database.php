@@ -49,10 +49,10 @@ $active_group = 'default';
 $active_record = TRUE;
 
 $db['default']['hostname'] = getenv('db_host');
+$db['default']['port'] = getenv('db_port');
 $db['default']['username'] = getenv('db_username');
 $db['default']['password'] = getenv('db_password');
 $db['default']['database'] = getenv('db_name');
-$db['default']['port'] = getenv('db_port');
 $db['default']['dbdriver'] = 'postgre';
 $db['default']['dbprefix'] = '';
 $db['default']['pconnect'] = TRUE;
