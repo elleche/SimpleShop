@@ -44,6 +44,14 @@
 
 //$route['products/success'] = 'products/success';
 
+
+$route['admins/products/create'] = 'admins/createproduct';
+$route['admins/products/edit/(:any)'] = 'admins/createproduct/$1';
+$route['admins/products/delete/(:any)'] = 'admins/deleteproduct/$1';
+$route['admins/edit/(:any)'] = 'admins/create/$1';
+$route['admins/(:any)'] = 'admins/$1';
+$route['admins'] = 'admins/index';
+
 $route['products/buy/(:any)'] = 'products/buy/$1';
 $route['products/(:any)'] = 'products/view/$1';
 $route['products'] = 'products';

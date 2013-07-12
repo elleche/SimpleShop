@@ -8,13 +8,46 @@ class Order extends CI_Model
 	private $buyerEmail;
 	private $productId;
 	private $productQuantity;
+	private $orderAmount;
 //	private $db;
+	
+	public function getOrderDate()
+	{
+		return date('Y-m-d H:i:s', strtotime($this->orderDate));
+	}
+	public function getBuyerDetails()
+	{
+		return $this->buyerDetails;
+	}
+	public function getBuyerEmail()
+	{
+		return $this->buyerEmail;
+	}
+	public function getProductId()
+	{
+		return $this->productId;
+	}
+	public function getProductTitle()
+	{
+		$product = Product::getProducts($this->productId);
+		return $product->getTitle();
+	}
+	public function getProductQuantity()
+	{
+		return $this->productQuantity;
+	}
+	public function getOrderAmount()
+	{
+		return $this->orderAmount;
+	}
 
 	public function __construct($dataRow = FALSE)
 	{
 //		$CI =& get_instance();
 //		$this->db = $CI->db;
-		$this->load->database();
+		$this->load->database();		
+		$this->load->model('product', 'productModel');
+		
 		$this->orderId = 0;
 		$this->orderDate = getdate();
 		$this->orderAmount = 0;
@@ -30,40 +63,44 @@ class Order extends CI_Model
 			if(isset($dataRow['buyer_details'])) $this->buyerDetails = $dataRow['buyer_details'];
 			if(isset($dataRow['buyer_email'])) $this->buyerEmail = $dataRow['buyer_email'];
 			if(isset($dataRow['product_id'])) $this->productId = $dataRow['product_id'];
-			if(isset($dataRow['product_availability'])) $this->productAvailability = $dataRow['product_availability'];
+			if(isset($dataRow['product_quantity'])) $this->productQuantity = $dataRow['product_quantity'];
 		}
 	}
-	
+	public static function getOrders()
+	{
+		$CI =& get_instance();	
+		$CI->db->order_by('buyer_email', 'asc');
+		$query = $CI->db->get('orders');
+		$dataRows = $query->result_array();
+		$orders  = array();
+		foreach($dataRows as $row)
+		{
+			$orders[] = new Order($row);
+		}
+		return $orders;	
+	}
 	public function placeOrder($orderDetails)
 	{
-//		$purchaseSuccess = false;
-
-		//TODO lock table products here (for this specific product by id
+		$purchaseSuccess = false;
 		$this->db->trans_start();
 		
-		$product = Product::getProducts($orderDetails['product_id']);
+		//locks table products for this specific product by id
+		$product = Product::selectProductForUpdate($orderDetails['product_id']);
 		$productQuantity = $orderDetails['product_quantity'];
 		
 		if (!$product->isEmpty() && $product->getAvailability() >= $productQuantity)
 		{	
 			$orderDetails['order_amount'] = $product->getPrice() * $productQuantity;
 			
-//			$orderPlaced = $this->db->insert('orders', $orderDetails);	
-//			if ($orderPlaced)			
-//			{
-//				$purchaseSuccess = $product->updateProduct(
-//					array('product_availability' => $product->getAvailability() - $productQuantity));				
-//			}			
-			
 			$this->db->insert('orders', $orderDetails);
+			//update unlocks the table
 			$product->updateProduct(					
 					array('product_availability' => $product->getAvailability() - $productQuantity));
+			$purchaseSuccess = true;
 		}
 		
-		//TODO unlock table products (by product_id)
 		$this->db->trans_complete();
 		
-//		return 	$purchaseSuccess;
-		return 	$this->db->trans_status();
+		return ($purchaseSuccess && $this->db->trans_status());
 	}
 }
