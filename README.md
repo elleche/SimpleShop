@@ -1,1 +1,4 @@
-My first project with CodeIngiter - a tiny webshop with mailign campaigns functionality.
+SimpleShop
+==========
+
+A CodeIgniter starter project
